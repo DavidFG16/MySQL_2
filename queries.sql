@@ -54,7 +54,7 @@ BEGIN
 
         IF _total >= 50000 THEN
             SELECT id AS Id_Pedido, total AS Total, 'TOP' AS Status FROM pedido WHERE id = _id;
-        ELSE 
+        ELSE  
             SELECT id AS Id_Pedido, total AS Total, 'NO TOP' AS Status FROM pedido WHERE id = _id;
         END IF ;
     END LOOP c_pedidos;
@@ -68,3 +68,40 @@ DELIMITER ;
 CALL ps_top_ventas_pedidos();
 
 SELECT * FROM pedido LIMIT 2, 1;
+
+
+
+-- CURSOR SOLUCION
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ps_top_ventas_pedidos $$
+CREATE PROCEDURE ps_top_ventas_pedidos()
+BEGIN
+    DECLARE v_id INT DEFAULT 0;
+    DECLARE v_total DECIMAL(10, 2) DEFAULT 0.00;
+    DECLARE v_done INT DEFAULT FALSE;
+
+    DECLARE cursor_pedido CURSOR FOR SELECT id, total FROM pedido ORDER BY total DESC;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+
+    OPEN cursor_pedido;
+
+    c_pedidos: LOOP
+        FETCH cursor_pedido INTO v_id, v_total;
+        IF v_done THEN
+            LEAVE c_pedidos;
+        END IF;
+        
+        IF v_total >= 50000 THEN
+            SELECT v_id AS Id_Pedido, v_total AS Total, 'TOP' AS Status;
+        ELSE
+            SELECT v_id AS Id_Pedido, v_total AS Total, 'NO TOP' AS Status;
+        END IF;
+    END LOOP c_pedidos;
+
+    CLOSE cursor_pedido;
+END $$
+
+DELIMITER ;
+
+CALL ps_top_ventas_pedidos();
