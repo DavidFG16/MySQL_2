@@ -114,11 +114,13 @@ DELIMITER //
 CREATE PROCEDURE ps_actualizar_precio_productos(IN p_producto_id INT, IN p_nuevo_precio DECIMAL(10,2))
 BEGIN
     DECLARE _pro_pre_id INT; -- Producto Presentacion Id
-    DECLARE _rows_loop INT DEFAULT 0;
-    DECLARE _counter_loop INT DEFAULT 0;
+    -- Validar el LOOP
+    DECLARE done INT DEFAULT 0;
 
     DECLARE cur_pro CURSOR FOR
         SELECT presentacion_id FROM producto_presentacion WHERE producto_id = p_producto_id AND presentacion_id <> 1;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
 
     -- Actualizar 
     UPDATE producto_presentacion SET precio = p_nuevo_precio WHERE producto_id = p_producto_id AND presentacion_id = 1;
@@ -126,22 +128,21 @@ BEGIN
     IF ROW_COUNT() <= 0 THEN 
         SELECT 'No se encontro el producto' AS Error;
     ELSE
-        -- Asignar la cantidad de filas o registros Para el loop 
-        SET _rows_loop = (SELECT COUNT(*) FROM producto_presentacion WHERE producto_id = p_producto_id AND presentacion_id <> 1);
 
         OPEN cur_pro;
         leer_pro : LOOP 
             FETCH cur_pro INTO _pro_pre_id;
-            SET _counter_loop = _counter_loop +1;
-
-            UPDATE producto_presentacion 
-            SET precio = p_nuevo_precio + (p_nuevo_precio * 0.11)
-            WHERE producto_id = p_producto_id AND presentacion_id = _pro_pre_id;
-
             -- Validar LOOP
-            IF _counter_loop >= _rows_loop THEN
+            IF done THEN
                 LEAVE leer_pro;
             END IF;
+
+            ciclo_precio : LOOP
+            UPDATE producto_presentacion 
+            SET precio = p_nuevo_precio
+            WHERE producto_id = p_producto_id AND presentacion_id = _pro_pre_id;
+
+            precio = (p_nuevo_precio*0.11) 
 
         END LOOP leer_pro;
 
@@ -158,6 +159,6 @@ BEGIN
 END //
 DELIMITER //
 
-CALL ps_actualizar_precio_productos(1, 3000);
+CALL ps_actualizar_precio_productos(1, 3200);
 
 SELECT * FROM producto_presentacion
