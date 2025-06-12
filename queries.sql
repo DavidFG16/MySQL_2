@@ -106,10 +106,58 @@ DELIMITER ;
 
 CALL ps_top_ventas_pedidos();
 
+SELECT * FROM presentacion
+
+DROP PROCEDURE IF EXISTS ps_actualizar_precio_productos
 
 DELIMITER //
-CREATE PROCEDURE ps_actualizar_precio_productos()
+CREATE PROCEDURE ps_actualizar_precio_productos(IN p_producto_id INT, IN p_nuevo_precio DECIMAL(10,2))
 BEGIN
+    DECLARE _pro_pre_id INT; -- Producto Presentacion Id
+    DECLARE _rows_loop INT DEFAULT 0;
+    DECLARE _counter_loop INT DEFAULT 0;
+
+    DECLARE cur_pro CURSOR FOR
+        SELECT presentacion_id FROM producto_presentacion WHERE producto_id = p_producto_id AND presentacion_id <> 1;
+
+    -- Actualizar 
+    UPDATE producto_presentacion SET precio = p_nuevo_precio WHERE producto_id = p_producto_id AND presentacion_id = 1;
+    -- Validacion del UPDATE
+    IF ROW_COUNT() <= 0 THEN 
+        SELECT 'No se encontro el producto' AS Error;
+    ELSE
+        -- Asignar la cantidad de filas o registros Para el loop 
+        SET _rows_loop = (SELECT COUNT(*) FROM producto_presentacion WHERE producto_id = p_producto_id AND presentacion_id <> 1);
+
+        OPEN cur_pro;
+        leer_pro : LOOP 
+            FETCH cur_pro INTO _pro_pre_id;
+            SET _counter_loop = _counter_loop +1;
+
+            UPDATE producto_presentacion 
+            SET precio = p_nuevo_precio + (p_nuevo_precio * 0.11)
+            WHERE producto_id = p_producto_id AND presentacion_id = _pro_pre_id;
+
+            -- Validar LOOP
+            IF _counter_loop >= _rows_loop THEN
+                LEAVE leer_pro;
+            END IF;
+
+        END LOOP leer_pro;
+
+        CLOSE cur_pro;
+
+        IF ROW_COUNT() > 0 THEN
+            SELECT 'Producto Actualizado' AS Message;
+        ELSE
+            SELECT 'No se actualizo el precio de las otras presentaciones del producto' AS Error;
+        END IF;
+
+    END IF;
 
 END //
-DELIMITER
+DELIMITER //
+
+CALL ps_actualizar_precio_productos(1, 3000);
+
+SELECT * FROM producto_presentacion
