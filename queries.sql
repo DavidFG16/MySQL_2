@@ -105,3 +105,11 @@ END $$
 DELIMITER ;
 
 CALL ps_top_ventas_pedidos();
+
+
+DELIMITER //
+CREATE PROCEDURE ps_actualizar_precio_productos()
+BEGIN
+
+END //
+DELIMITER
