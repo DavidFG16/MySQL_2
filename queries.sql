@@ -110,12 +110,14 @@ SELECT * FROM presentacion
 
 DROP PROCEDURE IF EXISTS ps_actualizar_precio_productos
 
-DELIMITER //
+DELI    MITER //
 CREATE PROCEDURE ps_actualizar_precio_productos(IN p_producto_id INT, IN p_nuevo_precio DECIMAL(10,2))
 BEGIN
     DECLARE _pro_pre_id INT; -- Producto Presentacion Id
+    DECLARE _c_update_pro INT DEFAULT 0;
     -- Validar el LOOP
     DECLARE done INT DEFAULT 0;
+    DECLARE error_message VARCHAR(255) DEFAULT '';
 
     DECLARE cur_pro CURSOR FOR
         SELECT presentacion_id FROM producto_presentacion WHERE producto_id = p_producto_id AND presentacion_id <> 1;
@@ -126,7 +128,9 @@ BEGIN
     UPDATE producto_presentacion SET precio = p_nuevo_precio WHERE producto_id = p_producto_id AND presentacion_id = 1;
     -- Validacion del UPDATE
     IF ROW_COUNT() <= 0 THEN 
-        SELECT 'No se encontro el producto' AS Error;
+            SET error_message = CONCAT('[40001]', 'No se encontro el producto');
+            SIGNAL SQLSTATE VALUE '40001'
+            SET MESSAGE_TEXT = error_message;
     ELSE
 
         OPEN cur_pro;
@@ -137,12 +141,13 @@ BEGIN
                 LEAVE leer_pro;
             END IF;
 
-            ciclo_precio : LOOP
             UPDATE producto_presentacion 
-            SET precio = p_nuevo_precio
+            SET precio = p_nuevo_precio + (p_nuevo_precio*0.11) 
             WHERE producto_id = p_producto_id AND presentacion_id = _pro_pre_id;
 
-            precio = (p_nuevo_precio*0.11) 
+            IF ROW_COUNT() > 0 THEN
+                SET _c_update_pro = _c_update_pro + 1;
+            END IF;
 
         END LOOP leer_pro;
 
@@ -151,7 +156,9 @@ BEGIN
         IF ROW_COUNT() > 0 THEN
             SELECT 'Producto Actualizado' AS Message;
         ELSE
-            SELECT 'No se actualizo el precio de las otras presentaciones del producto' AS Error;
+            SET error_message = CONCAT('[40001]','No se actualizo el precio de las otras presentaciones del producto');
+            SIGNAL SQLSTATE VALUE '40001'
+                SET MESSAGE_TEXT = error_message;
         END IF;
 
     END IF;
@@ -159,6 +166,60 @@ BEGIN
 END //
 DELIMITER //
 
-CALL ps_actualizar_precio_productos(1, 3200);
+CALL ps_actualizar_precio_productos(100, 3200);
 
 SELECT * FROM producto_presentacion
+
+DROP FUNCTION IF EXISTS fn_calcular_subtotal_pedido 
+
+DELIMITER $$;
+
+CREATE FUNCTION fn_calcular_subtotal_pedido(p_pedido_id INT)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC 
+READS SQL DATA
+BEGIN
+    DECLARE v_combo DECIMAL(10,2);
+    DECLARE v_producto DECIMAL(10,2);
+    DECLARE v_total DECIMAL(10,2);
+
+    SELECT SUM(dp.cantidad * pp.precio) INTO v_producto
+    FROM detalle_pedido AS dp
+    INNER JOIN detalle_pedido_producto AS dpp ON dp.id = dpp.detalle_id
+    INNER JOIN producto AS p ON dpp.producto_id = p.id
+    INNER JOIN producto_presentacion AS pp ON p.id = pp.producto_id
+    WHERE dp.pedido_id = p_pedido_id AND pp.presentacion_id = 1;
+    
+    SELECT SUM(dp.cantidad * c.precio) INTO v_combo
+    FROM detalle_pedido AS dp
+    INNER JOIN detalle_pedido_combo AS dpc ON dp.id = dpc.detalle_id
+    INNER JOIN combo AS c ON dpc.combo_id = c.id
+    WHERE dp.pedido_id = p_pedido_id;
+
+    SET v_total = (v_combo + v_producto);
+    RETURN (v_total);
+END $$
+
+DELIMITER ;
+
+
+SELECT fn_calcular_subtotal_pedido(1) AS CasiTotal
+
+
+DELIMITER $$;
+
+CREATE FUNCTION fn_id_unico_factura(f_factura_id INT)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC 
+READS SQL DATA
+BEGIN
+    DECLARE codigo 
+
+    FLOOR
+
+    RETURN
+END $$
+
+DELIMITER ;
+
+SELECT FLOOR(RAND() * 10) AS numero_aleatorio;
