@@ -223,3 +223,53 @@ END $$
 DELIMITER ;
 
 SELECT FLOOR(RAND() * 10) AS numero_aleatorio;
+
+
+
+-- Ejercicios Taller 
+-- **`ps_add_pizza_con_ingredientes`**
+-- Crea un procedimiento que inserte una nueva pizza en la tabla `pizza` junto con sus ingredientes en `pizza_ingrediente`.
+
+-- - Parámetros de entrada: `p_nombre_pizza`, `p_precio`, lista de `p_ids_ingredientes`.
+-- - Debe recorrer la lista de ingredientes (cursor o ciclo) y hacer los inserts correspondients.
+
+
+
+-- **`ps_actualizar_precio_pizza`**
+-- Procedimiento que reciba `p_pizza_id` y `p_nuevo_precio` y actualice el precio.
+
+-- - Antes de actualizar, valide con un `IF` que el nuevo precio sea mayor que 0; de lo contrario, lance un `SIGNAL`.   
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ps_actualizar_precio_pizza $$
+CREATE PROCEDURE ps_actualizar_precio_pizza(IN p_pizza_id INT, p_nuevo_precio DECIMAL(10,2))
+BEGIN
+                
+
+
+
+END $$
+
+DELIMITER ;
+
+CALL ps_actualizar_precio_pizza();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
