@@ -85,3 +85,13 @@ INSERT INTO factura(total, fecha, pedido_id, cliente_id) VALUES
 (35000, '2025-06-10 12:05:00', 1, 1),
 (50000, '2025-06-09 13:35:00', 2, 2),
 (20000, '2025-06-08 18:50:00', 3, 3);
+
+
+INSERT INTO factura (id, pedido_id, cliente_id, total, fecha)
+VALUES (fn_id_unico_factura(), 1, 1, 25.50, NOW());
+
+INSERT INTO factura (id, pedido_id, cliente_id, total, fecha)
+VALUES 
+(fn_id_unico_factura(), 1, 1, 30.00, NOW()),
+(fn_id_unico_factura(), 1, 1, 15.75, NOW()),
+(fn_id_unico_factura(), 1, 1, 22.50, NOW());
