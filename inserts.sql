@@ -51,9 +51,9 @@ INSERT INTO ingrediente (nombre, stock, precio) VALUES
 ('Aguacate', 20, 1500);
 
 INSERT INTO pedido (fecha_recogida, total, cliente_id, metodo_pago_id) VALUES
-('2025-06-10 12:00:00', 35000, 1, 1),
-('2025-06-09 13:30:00', 50000, 2, 2),
-('2025-06-08 18:45:00', 20000, 3, 3);
+('2025-06-19 12:00:00', 35000, 1, 1),
+('2025-06-19 13:30:00', 50000, 2, 2),
+('2025-06-19 18:45:00', 20000, 3, 3);
 
 INSERT INTO detalle_pedido (pedido_id, cantidad) VALUES
 (1, 2),

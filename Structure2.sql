@@ -130,3 +130,9 @@ CREATE TABLE IF NOT EXISTS ingredientes_extra (
   FOREIGN KEY (ingrediente_id) REFERENCES ingrediente(id)
 );
 
+CREATE TABLE resumen_ventas(
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    fecha DATE NOT NULL,
+    cantidad INT NOT NULL,
+    total INT NOT NULL
+)

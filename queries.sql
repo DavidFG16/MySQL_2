@@ -345,9 +345,39 @@ END;
 
 DROP EVENT IF EXISTS actualizar_stock
 
-SELECT * FROM ingrediente;
+
+DROP EVENT IF EXISTS resumen_ventas
+
+DELIMITER //
+CREATE EVENT resumen_ventas
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP + INTERVAL 5 SECOND
+DO
+CALL resumen_ventas_pd();
+
+END //
+DELIMITER ;
+
+SELECT * FROM resumen_ventas
 
 
-SHOW EVENTS\G;
+SELECT * FROM pedido
 
-SHOW EVENTS;
+
+DELIMITER //
+CREATE PROCEDURE resumen_ventas_pd()
+BEGIN
+    INSERT INTO resumen_ventas(fecha, cantidad, total)
+    SELECT
+        DATE(NOW() - INTERVAL 24 HOUR),
+        COUNT(id),
+        SUM(total)
+    FROM pedido
+    WHERE fecha_recogida >= DATE(NOW()- INTERVAL 24 HOUR)
+    AND fecha_recogida < DATE(NOW());
+
+END //
+
+DELIMITER ;
+
+
