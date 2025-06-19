@@ -319,7 +319,35 @@ ALTER USER 'analista'@'localhost' WITH MAX_QUERIES_PER_HOUR 6;
 
 
 
+---------------------------EVENTOS-------------------------------------
+
+CREATE EVENT actualizar_stock
+ON SCHEDULE EVERY 1 HOUR
+DO
+BEGIN
+  UPDATE ingrediente
+  SET stock = stock - (
+    SELECT SUM(ingex.cantidad)
+    FROM ingredientes_extra AS ingex
+    WHERE ingex.ingrediente_id = ingrediente.id
+  )
+  WHERE id IN (
+    SELECT ingrediente_id
+    FROM ingredientes_extra
+  ) AND NOW() > (
+    SELECT fecha_recogida 
+    FROM pedido AS p
+    INNER JOIN detalle_pedido AS dp ON p.id = dp.pedido_id
+    INNER JOIN ingredientes_extra AS ingex ON dp.id = ingex.detalle_id 
+    WHERE fecha_recogida < NOW() - INTERVAL 1 HOUR
+    );
+END;
+
+DROP EVENT IF EXISTS actualizar_stock
+
+SELECT * FROM ingrediente;
 
 
+SHOW EVENTS\G;
 
-
+SHOW EVENTS;
